@@ -10,8 +10,10 @@ const path = require("path");
 const artistRoutes = require("./routes/artistsRoutes");
 
 const app = express();
+
+// CORS configuration - Allow all origins for now (adjust as needed for security)
 const corsOptions = {
-  origin: "http://localhost:3000", // Replace with the frontend's URL
+  origin: "http://localhost:3000", // Use '*' to allow all origins (you can change this if needed)
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type"],
 };
@@ -36,6 +38,6 @@ app.get("/", (req, res) => {
 
 // listen to port
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
 });
