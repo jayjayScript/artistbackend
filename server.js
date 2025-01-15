@@ -13,7 +13,7 @@ const app = express();
 
 // CORS configuration - Allow all origins for now (adjust as needed for security)
 const corsOptions = {
-  origin: '*', // Use '*' to allow all origins (you can change this if needed)
+  origin: "https://artistphere.onrender.com", 
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type"],
 };
