@@ -12,8 +12,19 @@ const artistRoutes = require("./routes/artistsRoutes");
 const app = express();
 
 // CORS configuration - Allow all origins for now (adjust as needed for security)
+const allowedOrigins = [
+  "https://artistphere.onrender.com", // Production frontend
+  "http://localhost:3000",           // Development frontend
+];
+
 const corsOptions = {
-  origin: "https://artistphere.onrender.com", 
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true); // Allow the request
+    } else {
+      callback(new Error("Not allowed by CORS")); // Block the request
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type"],
 };
