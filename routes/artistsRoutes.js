@@ -1,24 +1,48 @@
 const express = require("express");
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 const Artist = require("../models/artists.js"); // Corrected typo
 const router = express.Router();
 
+const validateArtist = (data) => {
+  const requiredFields = ["name", "img"];
+  for (const field of requiredFields) {
+    if (!data[field]) {
+      return `${field} is required`;
+    }
+  }
+  return null;
+};
+
 // Handle an array of artist objects
 router.post("/artists", async (req, res) => {
+
+  const validationError = validateArtist(req.body);
+  if (validationError) {
+    return res.status(400).json({ message: validationError });
+  }
+
   try {
-    const artists = req.body;
-    if (!Array.isArray(artists)) {
-      return res
-        .status(400)
-        .json({ message: "Request body must be an array of artist objects" });
-    }
-    const newArtists = await Artist.insertMany(artists, { ordered: false });
-    res.status(201).json(newArtists);
+    const artist = {
+      name: req.body.name,
+      img: req.body.img, // The image URL
+      para1: req.body.para1 || '',
+      para2: req.body.para2 || '',
+      para3: req.body.para3 || '',
+      hitSong: req.body.hitSong || '',
+      platforms: req.body.platforms || {},
+      text: req.body.text || '',
+    };
+
+    // Save the artist
+    const newArtist = await Artist.create(artist);
+    res.status(201).json(newArtist);
   } catch (error) {
+    console.error('Error adding artist:', error);
+
     if (error.code === 11000) {
-      res.status(400).json({ message: "Duplicate key error", error });
+      res.status(400).json({ message: "Duplicate artist", error:  error.keyValue });
     } else {
-      res.status(400).json({ message: error.message });
+      res.status(500).json({ message: "Error adding artist", error:  error.keyValue });
     }
   }
 });
@@ -33,7 +57,8 @@ router.get("/artists", async (req, res) => {
 });
 
 // Get an artist by ID
-router.get("/artists/:id", async (req, res) => {  // Changed from "/api/artists/:id" to "/artists/:id"
+router.get("/artists/:id", async (req, res) => {
+  // Changed from "/api/artists/:id" to "/artists/:id"
   const { id } = req.params; // Extract the ID from the request parameters
 
   try {
@@ -55,7 +80,9 @@ router.get("/artists/:id", async (req, res) => {  // Changed from "/api/artists/
   } catch (error) {
     // Handle unexpected server errors
     console.error("Error fetching artist:", error);
-    res.status(500).json({ message: "Error fetching artist", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error fetching artist", error: error.message });
   }
 });
 
