@@ -24,13 +24,13 @@ router.post("/artists", async (req, res) => {
   try {
     const artist = {
       name: req.body.name,
+      text: req.body.text || '',
       img: req.body.img, // The image URL
       para1: req.body.para1 || '',
       para2: req.body.para2 || '',
       para3: req.body.para3 || '',
       hitSong: req.body.hitSong || '',
       platforms: req.body.platforms || {},
-      text: req.body.text || '',
     };
 
     // Save the artist

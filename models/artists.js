@@ -4,6 +4,7 @@ const artistSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, unique: true },
     img: { type: String, required: true },
+    text: { type: String, default: "" },
     para1: { type: String, default: "" },
     para2: { type: String, default: "" },
     para3: { type: String, default: "" },
@@ -21,7 +22,6 @@ const artistSchema = new mongoose.Schema(
       audiomack: { type: String, match: /^https?:\/\/.*/, default: "" },
       twitch: { type: String, match: /^https?:\/\/.*/, default: "" },
     },
-    text: { type: String, default: "" },
   },
   { timestamps: true }
 );
