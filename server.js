@@ -8,7 +8,6 @@ const bodyParser = require("body-parser");
 
 const app = express();
 
-
 const allowedOrigins = [
   "https://artistphere.onrender.com", 
   "http://localhost:3000", 
@@ -30,8 +29,8 @@ app.use(express.json());
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
-
 const PORT = process.env.PORT || 5000;
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
@@ -52,9 +51,4 @@ app.use("/api", artistRoutes);
 
 app.get("/", (req, res) => {
   res.send("Welcome to Artists API");
-});
-
-// listen to port
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server is running on port ${PORT}`);
 });
