@@ -3,25 +3,35 @@ const mongoose = require("mongoose");
 const artistSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, unique: true },
-    img: { type: String, required: true },
+    img: { 
+      type: String, 
+      required: true, 
+      validate: {
+        validator: function(value) {
+          // Allow either a URL or a local file path
+          return /^https?:\/\/.*$/.test(value) || /^\/uploads\/.*$/.test(value);
+        },
+        message: "Invalid image URL or file path",
+      }
+    },
     text: { type: String, default: "" },
     para1: { type: String, default: "" },
     para2: { type: String, default: "" },
     para3: { type: String, default: "" },
     hitSong: { type: String, default: "" },
-    platforms: {
-      spotify: { type: String, match: /^https?:\/\/.*/, default: "" },
-      soundCloud: { type: String, match: /^https?:\/\/.*/, default: "" },
-      youtube: { type: String, match: /^https?:\/\/.*/, default: "" },
-      instagram: { type: String, match: /^https?:\/\/.*/, default: "" },
-      appleMusic: { type: String, match: /^https?:\/\/.*/, default: "" },
-      beatport: { type: String, match: /^https?:\/\/.*/, default: "" },
-      bandcamp: { type: String, match: /^https?:\/\/.*/, default: "" },
-      twitter: { type: String, match: /^https?:\/\/.*/, default: "" },
-      deezer: { type: String, match: /^https?:\/\/.*/, default: "" },
-      audiomack: { type: String, match: /^https?:\/\/.*/, default: "" },
-      twitch: { type: String, match: /^https?:\/\/.*/, default: "" },
-    },
+    // platforms: {
+    //   spotify: { type: String, match: /^https?:\/\/.*/, default: "" },
+    //   soundCloud: { type: String, match: /^https?:\/\/.*/, default: "" },
+    //   youtube: { type: String, match: /^https?:\/\/.*/, default: "" },
+    //   instagram: { type: String, match: /^https?:\/\/.*/, default: "" },
+    //   appleMusic: { type: String, match: /^https?:\/\/.*/, default: "" },
+    //   beatport: { type: String, match: /^https?:\/\/.*/, default: "" },
+    //   bandcamp: { type: String, match: /^https?:\/\/.*/, default: "" },
+    //   twitter: { type: String, match: /^https?:\/\/.*/, default: "" },
+    //   deezer: { type: String, match: /^https?:\/\/.*/, default: "" },
+    //   audiomack: { type: String, match: /^https?:\/\/.*/, default: "" },
+    //   twitch: { type: String, match: /^https?:\/\/.*/, default: "" },
+    // },
   },
   { timestamps: true }
 );
