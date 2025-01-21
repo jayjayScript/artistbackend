@@ -68,7 +68,7 @@ app.get("/", (req, res) => {
   res.send("Welcome to Artists API");
 });
 
-app.use((err, req, res) => {
+app.use((err, req, res, next) => {
   console.error("Error:", err);
   if (err.name === "UnauthorizedError") {
     res.status(401).json({ message: "Invalid token" });
