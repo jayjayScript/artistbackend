@@ -2,21 +2,15 @@ const express = require("express");
 const mongoose = require("mongoose");
 const Artist = require("../models/artists");
 const Joi = require("joi");
-const multer = require("multer");
-const path = require("path");
+const cloudinary = require("cloudinary").v2;
 const router = express.Router();
 
-// Set up multer for file storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Store files in the "uploads" directory
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // Add a timestamp to avoid name conflicts
-  },
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET,
 });
-
-const upload = multer({ storage });
 
 // Validation Schema
 const artistSchema = Joi.object({
@@ -26,6 +20,7 @@ const artistSchema = Joi.object({
   para2: Joi.string().optional(),
   para3: Joi.string().optional(),
   hitSong: Joi.string().optional(),
+  img: Joi.string().uri().optional(), // Ensure that img is a valid URL
 });
 
 // Middleware to validate MongoDB ObjectId
@@ -37,23 +32,35 @@ const validateId = (req, res, next) => {
 };
 
 // Create a new artist
-router.post("/artists", upload.single("img"), async (req, res) => {
-  const { name, text, para1, para2, para3, hitSong } = req.body;
-
-  // Check if a file is uploaded
-  const img = req.file ? `/uploads/${req.file.filename}` : null;
+router.post("/artists", async (req, res) => {
+  const { name, text, para1, para2, para3, hitSong, img } = req.body;
 
   // Validate artist data using Joi
-  const { error } = artistSchema.validate({ name, text, para1, para2, para3, hitSong });
+  const { error } = artistSchema.validate({ name, text, para1, para2, para3, hitSong, img });
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
   }
 
-  // Create the artist object with the image file path
+  let imageUrl = img; // Default to the provided image URL
+
+  // If a base64-encoded image is provided, upload it to Cloudinary
+  if (img && img.startsWith("data:image")) {
+    try {
+      const result = await cloudinary.uploader.upload(img, {
+        folder: "uploads", // Optional: Organize images into a folder
+      });
+      imageUrl = result.secure_url; // Use the Cloudinary URL
+    } catch (error) {
+      console.error("Error uploading to Cloudinary:", error);
+      return res.status(500).json({ message: "Error uploading image" });
+    }
+  }
+
+  // Create the artist object with the provided data
   const artist = {
     name,
     text: text || '',
-    img,
+    img: imageUrl || null, // Use the Cloudinary URL or the provided URL
     para1: para1 || '',
     para2: para2 || '',
     para3: para3 || '',
@@ -63,9 +70,8 @@ router.post("/artists", upload.single("img"), async (req, res) => {
   try {
     const newArtist = await Artist.create(artist);
     res.status(201).json({ success: true, data: newArtist });
-    console.log("successfully added celebrity", res.data)
   } catch (error) {
-    console.error("Error adding celebrity:", error);
+    console.error("Error adding artist:", error);
     const errorMessage =
       error.code === 11000
         ? "Duplicate artist"
@@ -74,7 +80,10 @@ router.post("/artists", upload.single("img"), async (req, res) => {
   }
 });
 
-module.exports = router;
+
+
+
+
 
 
 // Get all artists
@@ -98,6 +107,9 @@ router.get("/artists/:id", validateId, async (req, res) => {
   }
 });
 
+
+
+
 // Update an artist by ID
 router.patch("/artists/:id", validateId, async (req, res) => {
   const { error } = artistSchema.validate(req.body, { allowUnknown: true });
@@ -114,6 +126,10 @@ router.patch("/artists/:id", validateId, async (req, res) => {
     res.status(400).json({ message: "Error updating artist", error: error.message });
   }
 });
+
+
+
+
 
 // Delete an artist by ID
 router.delete("/artists/:id", validateId, async (req, res) => {

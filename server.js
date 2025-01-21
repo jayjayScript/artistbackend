@@ -1,12 +1,20 @@
-require("dotenv").config(); // This loads the .env file
+// require("dotenv").config(); // This loads the .env file
 
-const mongoose = require("mongoose");
+require("dotenv").config(); // Load environment variables
+const cloudinary = require("cloudinary").v2;
 const express = require("express");
+const mongoose = require("mongoose");
 const cors = require("cors");
 const artistRoutes = require("./routes/artistsRoutes");
 const helmet = require("helmet");
 
 const app = express();
+
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET,
+});
 
 const allowedOrigins = [
   "https://artistphere.onrender.com",
@@ -25,7 +33,8 @@ const corsOptions = {
   allowedHeaders: ["Content-Type"],
 };
 
-
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use(helmet());
 app.use(express.json());
 app.use(cors(corsOptions));
@@ -50,7 +59,7 @@ mongoose
 
 mongoose.connection.on("disconnected", () => {
   console.log("MongoDB connection lost. Retrying...");
-  mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+  mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true, tls: true,  });
 });
 
 app.use("/api", artistRoutes);
@@ -59,12 +68,13 @@ app.get("/", (req, res) => {
   res.send("Welcome to Artists API");
 });
 
-app.use((err, req, res) => {
+app.use((err, req, res, next) => {
+  console.error("Error:", err);
   if (err.name === "UnauthorizedError") {
-    res.status(401).send("Invalid token");
+    res.status(401).json({ message: "Invalid token" });
   } else if (err.message === "Not allowed by CORS") {
-    res.status(403).send("CORS Error: Access Denied");
+    res.status(403).json({ message: "CORS Error: Access Denied" });
   } else {
-    res.status(500).send("An unexpected error occurred");
+    res.status(500).json({ message: "An unexpected error occurred" });
   }
 });
