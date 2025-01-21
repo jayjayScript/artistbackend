@@ -17,7 +17,7 @@ cloudinary.config({
 });
 
 const allowedOrigins = [
-  "https://artistphere.onrender.com",
+  "https://artistphere.onrender.com/",
   "http://localhost:3000",
 ];
 
