@@ -1,6 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const Artist = require("../models/artists");
+const Artist = require("../models/artists.js");
 const Joi = require("joi");
 const cloudinary = require("cloudinary").v2;
 const router = express.Router();
