@@ -3,7 +3,7 @@ const cloudinary = require("cloudinary").v2;
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const artistRoutes = require("./routes/CelebritiesRoutes");
+const artistRoutes = require("./artistsRoutes");
 const helmet = require("helmet");
 
 const app = express();

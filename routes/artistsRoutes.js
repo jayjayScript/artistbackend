@@ -1,6 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const Artist = require("../models/Celebrities");
+const Artist = require("../models/artists");
 const Joi = require("joi");
 const cloudinary = require("cloudinary").v2;
 const router = express.Router();
@@ -13,7 +13,7 @@ cloudinary.config({
 });
 
 // Validation Schema
-const Celebritieschema = Joi.object({
+const artistSchema = Joi.object({
   name: Joi.string().required(),
   text: Joi.string().optional(),
   para1: Joi.string().optional(),
@@ -32,11 +32,11 @@ const validateId = (req, res, next) => {
 };
 
 // Create a new artist
-router.post("/Celebrities", async (req, res) => {
+router.post("/artists", async (req, res) => {
   const { name, text, para1, para2, para3, hitSong, img } = req.body;
 
   // Validate artist data using Joi
-  const { error } = Celebritieschema.validate({ name, text, para1, para2, para3, hitSong, img });
+  const { error } = artistSchema.validate({ name, text, para1, para2, para3, hitSong, img });
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
   }
@@ -87,7 +87,7 @@ router.post("/Celebrities", async (req, res) => {
 
 
 // Get all Celebrities
-router.get("/Celebrities", async (req, res) => {
+router.get("/artists", async (req, res) => {
   try {
     const Celebrities = await Artist.find();
     res.status(200).json({ success: true, data: Celebrities });
@@ -97,7 +97,7 @@ router.get("/Celebrities", async (req, res) => {
 });
 
 // Get an artist by ID
-router.get("/Celebrities/:id", validateId, async (req, res) => {
+router.get("/artists/:id", validateId, async (req, res) => {
   try {
     const artist = await Artist.findById(req.params.id);
     if (!artist) return res.status(404).json({ message: "Artist not found" });
@@ -111,8 +111,8 @@ router.get("/Celebrities/:id", validateId, async (req, res) => {
 
 
 // Update an artist by ID
-router.patch("/Celebrities/:id", validateId, async (req, res) => {
-  const { error } = Celebritieschema.validate(req.body, { allowUnknown: true });
+router.patch("/artists/:id", validateId, async (req, res) => {
+  const { error } = artistSchema.validate(req.body, { allowUnknown: true });
   if (error) return res.status(400).json({ message: error.details[0].message });
 
   try {
@@ -132,7 +132,7 @@ router.patch("/Celebrities/:id", validateId, async (req, res) => {
 
 
 // Delete an artist by ID
-router.delete("/Celebrities/:id", validateId, async (req, res) => {
+router.delete("/artists/:id", validateId, async (req, res) => {
   try {
     const artist = await Artist.findByIdAndDelete(req.params.id);
     if (!artist) return res.status(404).json({ message: "Artist not found" });

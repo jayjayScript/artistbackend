@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const Celebritieschema = new mongoose.Schema(
+const artistSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, unique: true },
     img: { 
@@ -24,7 +24,7 @@ const Celebritieschema = new mongoose.Schema(
 
 // Celebritieschema.index({ name: 1 });
 
-module.exports = mongoose.model("Artist", Celebritieschema);
+module.exports = mongoose.model("Artist", artistSchema);
 
 
 
