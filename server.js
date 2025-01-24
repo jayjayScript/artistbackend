@@ -3,7 +3,7 @@ const cloudinary = require("cloudinary").v2;
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const artistRoutes = require("./routes/artistsRoutes");
+const artistRoutes = require("./routes/CelebritiesRoutes");
 const helmet = require("helmet");
 
 const app = express();
@@ -63,7 +63,7 @@ app.use("/api", artistRoutes);
 
 // Default route
 app.get("/", (req, res) => {
-  res.send("Welcome to Artists API");
+  res.send("Welcome to Celebrities API");
 });
 
 // Error handling middleware
