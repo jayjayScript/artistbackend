@@ -18,7 +18,8 @@ cloudinary.config({
 // Define allowed origins
 const allowedOrigins = [
   "https://artistphere.onrender.com", // No trailing slash
-  "https://fansphere-jayjays-projects-1608827c.vercel.app",
+  "https://fansphere.net",
+  "https://www.fansphere.net",
   "http://localhost:3000",
 ];
 
