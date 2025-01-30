@@ -18,6 +18,7 @@ cloudinary.config({
 // Define allowed origins
 const allowedOrigins = [
   "https://artistphere.onrender.com", // No trailing slash
+  "https://fansphere-jayjays-projects-1608827c.vercel.app/",
   "http://localhost:3000",
 ];
 
@@ -40,6 +41,10 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use(helmet());
 app.use(cors(corsOptions)); // Apply CORS middleware
+app.options('*', cors({
+  credentials: true,
+  origin: allowedOrigins
+}))
 
 // MongoDB connection
 const uri = process.env.MONGODB_URI;
