@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const artistRoutes = require("./routes/artistsRoutes");
 const helmet = require("helmet");
+const { OAuth2Client } = require('google-auth-library');
 
 const app = express();
 
@@ -46,6 +47,43 @@ app.options('*', cors({
   credentials: true,
   origin: allowedOrigins
 }))
+
+// Google OAuth 2.0 Client
+const client = new OAuth2Client({
+  clientId: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  redirectUri: `${process.env.NEXTAUTH_URL}/api/auth/callback`,
+});
+
+// Google OAuth 2.0 Routes
+app.post("/api/auth/google", async (req, res) => {
+  const { token } = req.body;
+
+  if (!token) {
+    return res.status(400).json({ message: "No token provided" });
+  }
+
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    res.status(200).json({
+      message: "User verified",
+      user: {
+        id: payload.sub,
+        name: payload.name,
+        email: payload.email,
+        picture: payload.picture,
+      },
+    });
+  } catch (error) {
+    console.error("Google Authentication Error:", error);
+    res.status(401).json({ message: "Invalid authentication" });
+  }
+});
 
 // MongoDB connection
 const uri = process.env.MONGODB_URI;
