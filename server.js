@@ -52,7 +52,7 @@ app.options('*', cors({
 const client = new OAuth2Client({
   clientId: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  redirectUri: `${process.env.BACKEND_URL}/api/auth/callback`,
+  redirectUri: `${process.env.BACKEND_URL}/api/auth/google/callback`,
 });
 
 // Google OAuth 2.0 Routes
