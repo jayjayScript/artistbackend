@@ -19,10 +19,10 @@ cloudinary.config({
 // Define allowed origins
 const allowedOrigins = [
   "*",
-  "http://localhost:3000",
   "https://artistphere.onrender.com", // No trailing slash
   "https://fansphere.net",
   "https://www.fansphere.net",
+  "http://localhost:3000",
 ];
 
 // CORS configuration
@@ -50,7 +50,7 @@ app.use(helmet());
 app.use(cors(corsOptions)); // Apply CORS middleware
 app.options('*', cors({
   credentials: true,
-  origin: '*'
+  origin: allowedOrigins
 }))
 
 // Google OAuth 2.0 Client
