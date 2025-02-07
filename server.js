@@ -18,7 +18,7 @@ cloudinary.config({
 
 // Define allowed origins
 const allowedOrigins = [
-  "https://artistphere.onrender.com", // No trailing slash
+  // "https://artistphere.onrender.com", // No trailing slash
   "https://fansphere.net",
   "https://www.fansphere.net",
   "http://localhost:3000",
