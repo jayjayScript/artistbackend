@@ -18,6 +18,8 @@ const artistSchema = new mongoose.Schema(
     para2: { type: String, default: "" },
     para3: { type: String, default: "" },
     hitSong: { type: String, default: "" },
+    charity: { type: String, default: "" },
+    aboutCharity: { type: String, default: "" },
   },
   { timestamps: true }
 );

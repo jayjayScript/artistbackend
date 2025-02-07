@@ -20,6 +20,8 @@ const artistSchema = Joi.object({
   para2: Joi.string().optional(),
   para3: Joi.string().optional(),
   hitSong: Joi.string().optional(),
+  charity: Joi.string().optional(),
+  aboutCharity: Joi.string().optional(),
   img: Joi.string().uri().optional(), // Ensure that img is a valid URL
 });
 
@@ -33,54 +35,86 @@ const validateId = (req, res, next) => {
 
 // Create a new artist
 router.post("/artists", async (req, res) => {
-  const { name, text, para1, para2, para3, hitSong, img } = req.body;
+  const {
+    _id,
+    name,
+    text,
+    para1,
+    para2,
+    para3,
+    hitSong,
+    charity,
+    aboutCharity,
+    img,
+  } = req.body;
 
   // Validate artist data using Joi
-  const { error } = artistSchema.validate({ name, text, para1, para2, para3, hitSong, img });
+  const { error } = artistSchema.validate({
+    name,
+    text,
+    para1,
+    para2,
+    para3,
+    hitSong,
+    charity,
+    aboutCharity,
+    img,
+  });
+
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
   }
 
-  let imageUrl = img; // Default to the provided image URL
+  let imageUrl = img;
 
-  // If a base64-encoded image is provided, upload it to Cloudinary
+  // Handle Cloudinary image upload if needed
+  const uploadImage = async (img) => {
+    return new Promise((resolve, reject) => {
+      cloudinary.uploader.upload(img, { folder: "uploads" }, (error, result) => {
+        if (error) reject(error);
+        resolve(result.secure_url);
+      });
+    });
+  };
+  
+  // Inside your POST route
   if (img && img.startsWith("data:image")) {
     try {
-      const result = await cloudinary.uploader.upload(img, {
-        folder: "uploads", // Optional: Organize images into a folder
-      });
-      imageUrl = result.secure_url; // Use the Cloudinary URL
-    } catch (error) {
-      console.error("Error uploading to Cloudinary:", error);
+      const result = await uploadImage(img);
+      imageUrl = result; // Use the image URL for the artist
+    } catch (uploadError) {
+      console.error("Error uploading to Cloudinary:", uploadError);
       return res.status(500).json({ message: "Error uploading image" });
     }
   }
 
-  // Create the artist object with the provided data
-  const artist = {
-    name,
-    text: text || '',
-    img: imageUrl || null, // Use the Cloudinary URL or the provided URL
-    para1: para1 || '',
-    para2: para2 || '',
-    para3: para3 || '',
-    hitSong: hitSong || '',
-  };
-
   try {
-    const newArtist = await Artist.create(artist);
-    res.status(201).json({ success: true, data: newArtist });
-  } catch (error) {
-    console.error("Error adding artist:", error);
-    const errorMessage =
-      error.code === 11000
-        ? "Duplicate artist"
-        : "Error adding artist";
-    res.status(500).json({ message: errorMessage, error: error.message });
+    const updatedArtist = await Artist.findOneAndUpdate(
+      { _id: _id || new mongoose.Types.ObjectId() }, // If no _id is provided, generate a new one
+      {
+        name,
+        text,
+        img: imageUrl,
+        para1,
+        para2,
+        para3,
+        hitSong,
+        charity,
+        aboutCharity,
+      },
+      { upsert: true, new: true, runValidators: true } // 🔥 This ensures updates or inserts
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: _id ? "Artist updated successfully" : "Artist added successfully",
+      data: updatedArtist,
+    });
+  } catch (err) {
+    console.error("Error processing request:", err);
+    return res.status(500).json({ message: "Internal Server Error", error: err.message });
   }
 });
-
-
 
 
 
@@ -88,13 +122,19 @@ router.post("/artists", async (req, res) => {
 
 // Get all Celebrities
 router.get("/artists", async (req, res) => {
+  res.header("Access-Control-Allow-Origin", "http://localhost:3000")
+  const page = parseInt(req.query.page) || 1; // Default to page 1
+  const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page
+  const skip = (page - 1) * limit;
+
   try {
-    const Celebrities = await Artist.find();
-    res.status(200).json({ success: true, data: Celebrities });
+    const artists = await Artist.find().skip(skip).limit(limit);
+    res.status(200).json({ success: true, data: artists });
   } catch (error) {
-    res.status(500).json({ message: "Error fetching Celebrities", error: error.message });
+    res.status(500).json({ message: "Error fetching artists", error: error.message });
   }
 });
+
 
 // Get an artist by ID
 router.get("/artists/:id", validateId, async (req, res) => {
@@ -103,12 +143,11 @@ router.get("/artists/:id", validateId, async (req, res) => {
     if (!artist) return res.status(404).json({ message: "Artist not found" });
     res.status(200).json({ success: true, data: artist });
   } catch (error) {
-    res.status(500).json({ message: "Error fetching artist", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error fetching artist", error: error.message });
   }
 });
-
-
-
 
 // Update an artist by ID
 router.patch("/artists/:id", validateId, async (req, res) => {
@@ -123,13 +162,46 @@ router.patch("/artists/:id", validateId, async (req, res) => {
     if (!artist) return res.status(404).json({ message: "Artist not found" });
     res.status(200).json({ success: true, data: artist });
   } catch (error) {
-    res.status(400).json({ message: "Error updating artist", error: error.message });
+    res
+      .status(400)
+      .json({ message: "Error updating artist", error: error.message });
   }
 });
 
+// Update an artist by ID
+router.put("/artists/:id", validateId, async (req, res) => {
+  try {
+    const { error } = artistSchema.validate(req.body); // Validate *only* what's being updated
+    if (error) {
+      console.error("Validation Error:", error);
+      return res.status(400).json({ message: error.details[0].message });
+    }
 
+    const artist = await Artist.findByIdAndUpdate(req.params.id, req.body, {
+      new: true, // Return the updated document
+      runValidators: true, // Enforce schema validation
+    });
 
+    if (!artist) {
+      return res.status(404).json({ message: "Artist not found" });
+    }
 
+    res.status(200).json({ success: true, data: artist }); // Consistent success response
+  } catch (error) {
+    console.error("Error updating artist:", error);
+
+    if (error.name === "ValidationError") {
+      // Mongoose validation errors
+      return res.status(400).json({ message: error.message }); // Send validation error to client
+    }
+
+    res
+      .status(500)
+      .json({ message: "Server error updating artist", error: error.message }); // More generic error message for other errors
+  }
+});
+
+module.exports = router;
 
 // Delete an artist by ID
 router.delete("/artists/:id", validateId, async (req, res) => {
@@ -138,7 +210,9 @@ router.delete("/artists/:id", validateId, async (req, res) => {
     if (!artist) return res.status(404).json({ message: "Artist not found" });
     res.status(200).json({ success: true, data: artist });
   } catch (error) {
-    res.status(500).json({ message: "Error deleting artist", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error deleting artist", error: error.message });
   }
 });
 
