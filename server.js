@@ -18,7 +18,6 @@ cloudinary.config({
 
 // Define allowed origins
 const allowedOrigins = [
-  "*",
   "https://artistphere.onrender.com", // No trailing slash
   "https://fansphere.net",
   "https://www.fansphere.net",
@@ -28,6 +27,7 @@ const allowedOrigins = [
 // CORS configuration
 const corsOptions = {
   origin: (origin, callback) => {
+    console.log("Origin:", origin); // Log the origin for debugging
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true); // Allow the request
     } else {
@@ -39,19 +39,13 @@ const corsOptions = {
   credentials: true, // Allow cookies and credentials
 };
 
-// Apply CORS middleware
-app.use(cors(corsOptions));
-
 
 // Middleware
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use(helmet());
 app.use(cors(corsOptions)); // Apply CORS middleware
-app.options('*', cors({
-  credentials: true,
-  origin: allowedOrigins
-}))
+app.options('*', cors(corsOptions)); // Enable pre-flight request for all routes
 
 // Google OAuth 2.0 Client
 const client = new OAuth2Client({
