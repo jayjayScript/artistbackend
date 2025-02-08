@@ -93,21 +93,23 @@ if (!uri) {
 
 const connectDB = async () => {
   if (mongoose.connection.readyState >= 1) {
-    console.log("MongoDB already connected");
+    console.log("✅ MongoDB already connected");
     return;
   }
   try {
     await mongoose.connect(uri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000, // Abort if connection takes too long
-      socketTimeoutMS: 45000, // Prevents long-running operations
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
     });
-    console.log("Connected to MongoDB");
+    console.log("✅ Connected to MongoDB");
   } catch (err) {
-    console.error("Could not connect to MongoDB", err);
+    console.error("❌ MongoDB Connection Error:", err.message);
+    console.error(err); // Log full error details
   }
 };
+
 
 // Call this in your API routes before handling requests
 (async () => {
