@@ -91,15 +91,28 @@ if (!uri) {
   throw new Error("MONGODB_URI is not defined in the environment variables");
 }
 
-mongoose
-  .connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => console.error("Could not connect to MongoDB", err));
+const connectDB = async () => {
+  if (mongoose.connection.readyState >= 1) {
+    console.log("MongoDB already connected");
+    return;
+  }
+  try {
+    await mongoose.connect(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000, // Abort if connection takes too long
+      socketTimeoutMS: 45000, // Prevents long-running operations
+    });
+    console.log("Connected to MongoDB");
+  } catch (err) {
+    console.error("Could not connect to MongoDB", err);
+  }
+};
 
-mongoose.connection.on("disconnected", () => {
-  console.log("MongoDB connection lost. Retrying...");
-  mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-});
+// Call this in your API routes before handling requests
+(async () => {
+  await connectDB();
+})();
 
 // Routes
 app.use("/api", artistRoutes);

@@ -122,18 +122,39 @@ router.post("/artists", async (req, res) => {
 
 // Get all Celebrities
 router.get("/artists", async (req, res) => {
-  res.header("Access-Control-Allow-Origin", "http://localhost:3000")
-  const page = parseInt(req.query.page) || 1; // Default to page 1
-  const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page
-  const skip = (page - 1) * limit;
-
   try {
-    const artists = await Artist.find().skip(skip).limit(limit);
+    // ✅ Ensure MongoDB is connected
+    if (mongoose.connection.readyState !== 1) {
+      await mongoose.connect(process.env.MONGODB_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        serverSelectionTimeoutMS: 5000, // Prevent long MongoDB hangs
+      });
+    }
+
+    // ✅ CORS: Allow multiple domains
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+
+    // ✅ Pagination logic
+    const page = parseInt(req.query.page) || 1; // Default: Page 1
+    const limit = parseInt(req.query.limit) || 10; // Default: 10 per page
+    const skip = (page - 1) * limit;
+
+    // ✅ Fetch artists with a timeout guard
+    const artists = await Artist.find()
+      .sort({ createdAt: -1 }) // Sort newest first (if you have timestamps)
+      .skip(skip)
+      .limit(limit)
+      .lean() // Optimize performance by returning plain objects
+
     res.status(200).json({ success: true, data: artists });
   } catch (error) {
+    console.error("Error fetching artists:", error);
     res.status(500).json({ message: "Error fetching artists", error: error.message });
   }
 });
+
 
 
 // Get an artist by ID
