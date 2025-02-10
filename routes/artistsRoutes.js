@@ -128,7 +128,7 @@ router.get("/artists", async (req, res) => {
       await mongoose.connect(process.env.MONGODB_URI, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
-        serverSelectionTimeoutMS: 5000, // Prevent long MongoDB hangs
+        serverSelectionTimeoutMS: 10000, // Prevent long MongoDB hangs
       });
     }
 
@@ -138,7 +138,7 @@ router.get("/artists", async (req, res) => {
 
     // ✅ Pagination logic
     const page = parseInt(req.query.page) || 1; // Default: Page 1
-    const limit = parseInt(req.query.limit) || 10; // Default: 10 per page
+    const limit = parseInt(req.query.limit); // Default: 10 per page
     const skip = (page - 1) * limit;
 
     // ✅ Fetch artists with a timeout guard
